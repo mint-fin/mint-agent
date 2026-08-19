@@ -408,6 +408,33 @@ section { padding: 96px 0; }
 .invite-form input::placeholder { color: var(--muted); }
 .invite-form input:focus { border-color: var(--jade); box-shadow: 0 0 0 3px var(--jade-soft); }
 .invite-msg { min-height: 1.4em; font-size: 0.9rem; color: var(--jade-strong); }
+.invite-msg.is-error { color: #a13c2f; }
+.invite-result {
+  display: grid; gap: 10px; margin-top: 4px; padding: 16px 18px;
+  background: var(--jade-pale); border: 1px solid var(--jade-soft); border-radius: var(--radius-md);
+}
+.invite-result .ir-note { font-size: 0.9rem; color: var(--jade-strong); font-weight: 600; line-height: 1.55; }
+.invite-result .ir-row { display: grid; grid-template-columns: 4.2em 1fr auto; gap: 10px; align-items: center; }
+.invite-result .ir-label { font-size: 0.82rem; color: var(--muted); }
+.invite-result code {
+  font-family: var(--font-mono); font-size: 0.95rem; color: var(--ink);
+  background: var(--paper-strong); border: 1px solid var(--line); border-radius: 8px;
+  padding: 7px 10px; overflow-wrap: anywhere; user-select: all;
+}
+.invite-result .ir-copy {
+  font-size: 0.8rem; padding: 6px 12px; border: 1px solid var(--jade-soft); border-radius: 8px;
+  background: var(--paper-strong); color: var(--jade-strong); cursor: pointer; white-space: nowrap;
+  transition: background 140ms ease;
+}
+.invite-result .ir-copy:hover { background: var(--jade-soft); }
+.invite-result .ir-go {
+  margin-top: 4px; display: inline-block; font-weight: 600; color: #fff; text-align: center;
+  background: var(--jade); border-radius: 10px; padding: 11px 16px; text-decoration: none;
+  transition: background 140ms ease;
+}
+.invite-result .ir-go:hover { background: var(--jade-strong); }
+.invite-login-link { font-size: 0.88rem; color: var(--jade-strong); text-decoration: none; font-weight: 600; }
+.invite-login-link:hover { text-decoration: underline; }
 .mail-btn {
   display: inline-flex; align-items: center; gap: 10px; align-self: flex-start; margin-top: 6px;
   font-family: var(--font-mono); font-size: 0.95rem; letter-spacing: 0.02em;
@@ -849,9 +876,24 @@ html.js .reveal.visible { opacity: 1; transform: none; }
         <p class="cc-desc" data-i18n="invite_desc"></p>
         <form class="invite-form" id="inviteForm" novalidate>
           <input type="text" id="inviteInput" data-i18n-placeholder="invite_placeholder" autocomplete="off" spellcheck="false" />
-          <button type="submit" class="cta-primary" data-i18n="invite_btn"></button>
+          <button type="submit" class="cta-primary" id="inviteSubmit" data-i18n="invite_btn"></button>
         </form>
         <p class="invite-msg" id="inviteMsg" aria-live="polite"></p>
+        <div class="invite-result" id="inviteResult" hidden>
+          <p class="ir-note" data-i18n="invite_success_note"></p>
+          <div class="ir-row">
+            <span class="ir-label" data-i18n="invite_user_label"></span>
+            <code id="irUser"></code>
+            <button type="button" class="ir-copy" data-copy-target="irUser" data-i18n="invite_copy"></button>
+          </div>
+          <div class="ir-row">
+            <span class="ir-label" data-i18n="invite_pass_label"></span>
+            <code id="irPass"></code>
+            <button type="button" class="ir-copy" data-copy-target="irPass" data-i18n="invite_copy"></button>
+          </div>
+          <a class="ir-go" id="irGo" href="#" target="_blank" rel="noreferrer" data-i18n="invite_go_app"></a>
+        </div>
+        <a class="invite-login-link" id="inviteLoginLink" href="#" target="_blank" rel="noreferrer" data-i18n="invite_have_account"></a>
       </div>
       <div class="contact-card">
         <span class="cc-tag" data-i18n="mail_tag"></span>

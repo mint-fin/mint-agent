@@ -45,22 +45,100 @@
 
   applyLocale(locale);
 
-  /* invitation code form (validation backend not wired up yet) */
+  /* invitation code redemption (server-side accounts; nothing secret lives here) */
+  var APP_BASE = "https://promptly-oklahoma-depth-modifications.trycloudflare.com";
+  var WORKSPACE_URL = APP_BASE + "/?view=workspace";
+
   var inviteForm = document.getElementById("inviteForm");
   if (inviteForm) {
+    var inviteBusy = false;
+    var goLink = document.getElementById("irGo");
+    var loginLink = document.getElementById("inviteLoginLink");
+    if (goLink) goLink.href = WORKSPACE_URL;
+    if (loginLink) loginLink.href = WORKSPACE_URL;
+
     inviteForm.addEventListener("submit", function (ev) {
       ev.preventDefault();
+      if (inviteBusy) return;
       var input = document.getElementById("inviteInput");
       var msg = document.getElementById("inviteMsg");
+      var submit = document.getElementById("inviteSubmit");
+      var result = document.getElementById("inviteResult");
       var dict = COPY[locale];
       var code = input.value.trim();
+      msg.classList.remove("is-error");
       if (!code) {
         msg.textContent = dict.invite_empty;
         input.focus();
         return;
       }
-      // TODO: hook up invitation-code verification here (API call, redirect, etc.)
-      msg.textContent = dict.invite_pending;
+      inviteBusy = true;
+      submit.disabled = true;
+      msg.textContent = dict.invite_checking;
+
+      fetch(APP_BASE + "/api/auth/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code }),
+      })
+        .then(function (response) {
+          return response
+            .json()
+            .catch(function () { return {}; })
+            .then(function (payload) { return { status: response.status, payload: payload }; });
+        })
+        .then(function (outcome) {
+          var d = COPY[locale];
+          if (outcome.status === 200 && outcome.payload && outcome.payload.username) {
+            msg.textContent = "";
+            document.getElementById("irUser").textContent = outcome.payload.username;
+            document.getElementById("irPass").textContent = outcome.payload.password;
+            result.hidden = false;
+            inviteForm.hidden = true;
+            return;
+          }
+          msg.classList.add("is-error");
+          if (outcome.status === 429) msg.textContent = d.invite_ratelimited;
+          else if (outcome.status === 400 || outcome.status === 404) msg.textContent = d.invite_invalid;
+          else msg.textContent = d.invite_network;
+        })
+        .catch(function () {
+          msg.classList.add("is-error");
+          msg.textContent = COPY[locale].invite_network;
+        })
+        .then(function () {
+          inviteBusy = false;
+          submit.disabled = false;
+        });
+    });
+
+    document.querySelectorAll(".ir-copy").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var target = document.getElementById(button.getAttribute("data-copy-target"));
+        if (!target) return;
+        var text = target.textContent || "";
+        var restore = function () {
+          window.setTimeout(function () {
+            button.textContent = COPY[locale].invite_copy;
+          }, 1400);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            button.textContent = COPY[locale].invite_copied;
+            restore();
+          });
+        } else {
+          var range = document.createRange();
+          range.selectNodeContents(target);
+          var selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          document.execCommand("copy");
+          selection.removeAllRanges();
+          button.textContent = COPY[locale].invite_copied;
+          restore();
+        }
+      });
     });
   }
 
