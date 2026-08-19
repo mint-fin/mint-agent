@@ -47,7 +47,8 @@
 
   /* invitation code redemption (server-side accounts; nothing secret lives here) */
   var APP_BASE = "https://promptly-oklahoma-depth-modifications.trycloudflare.com";
-  var WORKSPACE_URL = APP_BASE + "/?view=workspace";
+  /* Stable entry: the GitHub Pages launcher forwards to the current backend. */
+  var WORKSPACE_URL = "https://mint-fin.github.io/app/?view=workspace";
 
   var inviteForm = document.getElementById("inviteForm");
   if (inviteForm) {
